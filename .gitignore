@@ -1,6 +1,1 @@
 *.swp
-p*
-!p*.cpp
-!p*.rb
-!p*_input
-!p*_output

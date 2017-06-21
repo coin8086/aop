@@ -3,41 +3,43 @@
 
 using namespace std;
 
-inline int prev(const vector<int> & a, int pos, int k) {
-  int r = pos - k;
-  if (r < 0)
-    r += a.size();
-  return r;
-}
-
-inline int next(const vector<int> & a, int pos, int k) {
-  return (pos + k) % a.size();
-}
-
-inline void shift(vector<int> & a, int k, int i) {
-  int p = i;
-  int t = a[p];
-  a[p] = a[prev(a, p, k)];
-  p = next(a, p, k);
-  while (p != i) {
-    swap(t, a[p]);
-    p = next(a, p, k);
-  }
-}
-
-void shift(vector<int> & a, int k) {
-  if (a.empty())
-    return;
-  k %= a.size();
-  if (!k)
-    return;
-  if (a.size() % k == 0) {
+/*
+ * Put a[i] directly to its target postion a[j], where j = (i + k) % N. Then
+ * put the old a[j] to its target. Repeat the procedure N times and it solves.
+ * However, there's a special case in which i's target is j and j's target is
+ * i. For example, N = 4 and k = 2. That means the followings:
+ * (i + k) % N = j
+ * (j + k) % N = i
+ * <=>
+ * i + k = a * N + j
+ * j + k = b * N + i
+ * =>
+ * 2 * k = (a + b) * N
+ * <=> (2 * k) % N == 0 (1)
+ * Since 0 <= 2k < 2N, (1) is when and only when 2 * k == N
+ */
+void solve(vector<int> & a, int k) {
+  int N = a.size();
+  k %= N;
+  if (k * 2 == N) {
+    //Just swap a[i] and a[i + k]
     for (int i = 0; i < k; i++) {
-      shift(a, k, i);
+      int j = i + k; //target position, i.e. (i + k) % N
+      int t = a[j];
+      a[j] = a[i];
+      a[i] = t;
     }
   }
   else {
-    shift(a, k, 0);
+    int t = a[0]; //source value
+    int i = 0;    //source position
+    for (int c = 0; c < N; c++) {
+      int j = (i + k) % N; //target position
+      int t2 = a[j];
+      a[j] = t;
+      i = j;
+      t = t2;
+    }
   }
 }
 
@@ -52,7 +54,7 @@ int main() {
       cin >> e;
       v.push_back(e);
     }
-    shift(v, k);
+    solve(v, k);
     for (i = 0; i < v.size(); i++) {
       if (i)
         cout << ' ';

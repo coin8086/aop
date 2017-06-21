@@ -11,32 +11,41 @@ bool cmp(const Range & a, const Range & b) {
   return a.first < b.first;
 }
 
-bool in_ranges(vector<Range> & ranges, const Range & target) {
-  sort(ranges.begin(), ranges.end(), cmp);
-  vector<Range> merged;
-  int i = 0;
-  while (i < ranges.size()) {
-    int first = ranges[i].first;
-    int second = ranges[i].second;
-    for (i += 1; i < ranges.size(); i++) {
-      if (ranges[i].first <= second) {
-        if (second < ranges[i].second)
-          second = ranges[i].second;
-      }
-      else
-        break;
+vector<Range> merge(vector<Range> & a) {
+  sort(a.begin(), a.end(), cmp);
+  vector<Range> a2;
+  a2.push_back(a[0]);
+  for (int i = 1; i < a.size(); i++) {
+    if (a[i].first > a2.back().second) {
+      //Push a new Range into a2
+      a2.push_back(a[i]);
     }
-    merged.push_back(make_pair(first, second));
+    else if (a[i].second > a2.back().second) {
+      //Extend the last Range in a2
+      a2.back().second = a[i].second;
+    }
   }
-  bool in = false;
-  typedef vector<Range>::iterator It;
-  It it = upper_bound(merged.begin(), merged.end(), target, cmp);
-  if (it != merged.begin()) {
-    --it;
-    if (it->first <= target.first && it->second >= target.second)
-      in = true;
+  return a2;
+}
+
+bool search(const vector<Range> & a, int i, int j, const Range & r) {
+  if (i >= j)
+    return false;
+  int m = (i + j) / 2;
+  if (a[m].first <= r.first) {
+    if (a[m].second >= r.second)
+      return true;
+    else
+      return search(a, m + 1, j, r);
   }
-  return in;
+  else {
+    return search(a, i, m, r);
+  }
+}
+
+bool solve(vector<Range> & ranges, const Range & target) {
+  vector<Range> a = merge(ranges);
+  return search(a, 0, a.size(), target);
 }
 
 int main() {
@@ -51,7 +60,7 @@ int main() {
     }
     cin >> first >> second;
     Range t = make_pair(first, second);
-    cout << (in_ranges(ranges, t) ? "Yes" : "No") << endl;
+    cout << (solve(ranges, t) ? "Yes" : "No") << endl;
   }
   return 0;
 }

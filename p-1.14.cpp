@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <climits>
+#include <cassert>
 
 using namespace std;
 
@@ -61,11 +62,17 @@ vector<Grid> solve(Board & b, const Grid & p1, const Grid & p2) {
           int x = i + d[k][0] * s;
           int y = j + d[k][1] * s;
           int l = x * n + y;
-          if (x >= 0 && x < m && y >= 0 && y < n && b[x][y] == '.' && !found[l]) {
-            q.push(l);
-            found[l] = true;
-            turn[l] = turn[p] + 1;
-            pred[l] = p;
+          if (x >= 0 && x < m && y >= 0 && y < n && b[x][y] == '.' && (!found[l] || turn[l] > turn[p])) {
+            if (!found[l]) {
+              q.push(l);
+              found[l] = true;
+              turn[l] = turn[p] + 1;
+              pred[l] = p;
+            }
+            else {
+              //Just "cross" the grid. And there must be ...
+              assert(turn[l] == turn[p] + 1);
+            }
           }
           else {
             stop[k] = true;
@@ -118,7 +125,9 @@ int main() {
     }
     else {
       for (int i = 0; i < res.size(); i++) {
-        cout << "(" << res[i].first << "," << res[i].second << ") ";
+        if (i != 0)
+          cout << ' ';
+        cout << "(" << res[i].first << "," << res[i].second << ")";
       }
     }
     cout << endl;

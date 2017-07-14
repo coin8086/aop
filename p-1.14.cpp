@@ -9,9 +9,9 @@ using namespace std;
 
 typedef vector<vector<char> > Board;
 
-typedef pair<int, int> Point;
+typedef pair<int, int> Grid;
 
-vector<Point> solve(Board & b, const Point & p1, const Point & p2) {
+vector<Grid> solve(Board & b, const Grid & p1, const Grid & p2) {
   int m = b.size();
   int n = b[0].size();
   int s = p1.first * n + p1.second;
@@ -25,10 +25,16 @@ vector<Point> solve(Board & b, const Point & p1, const Point & p2) {
   found[s] = true;
   turn[s] = -1;
 
-  //Temporarily set target point to '.' so that it can be reached by the alg.
+  //Temporarily set target grid to '.' so that it can be reached by the BFS.
   char ch = b[p2.first][p2.second];
   b[p2.first][p2.second] = '.';
 
+  int d[4][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+  //The BFS targets at the status of corners and numbers of grids on the path.
+  //The algorithm meets the primary dimension(least corners) as the Book says.
+  //However, for the secondary one, it ensures that by the enqueuing order of
+  //"the same level" of grids.
   while (!q.empty()) {
     int p = q.front();
     q.pop();
@@ -38,65 +44,50 @@ vector<Point> solve(Board & b, const Point & p1, const Point & p2) {
     else {
       int i = p / n;
       int j = p % n;
-      //to left
-      for (int k = j - 1; k >= 0; k--) {
-        int l = i * n + k;
-        if (b[i][k] == '.' && !found[l]) {
-          q.push(l);
-          found[l] = true;
-          turn[l] = turn[p] + 1;
-          pred[l] = p;
+      bool stop[4] = {0, 0, 0, 0};
+
+      //cout << "Processing (" << i << "," << j << ")..." << endl;
+
+      //Try one step in each of the four directions from (i, j). Then the next
+      //step involves grids that are one step further from (i, j).
+      for (int s = 1;; s++) {
+        //cout << "s=" << s << endl;
+        int k;
+        for (k = 0; k < 4; k++) {
+          //cout << "k=" << k << endl;
+          if (stop[k]) {
+            continue;
+          }
+          int x = i + d[k][0] * s;
+          int y = j + d[k][1] * s;
+          int l = x * n + y;
+          if (x >= 0 && x < m && y >= 0 && y < n && b[x][y] == '.' && !found[l]) {
+            q.push(l);
+            found[l] = true;
+            turn[l] = turn[p] + 1;
+            pred[l] = p;
+          }
+          else {
+            stop[k] = true;
+          }
         }
-        else {
-          break;
+
+        for (k = 0; k < 4; k++) {
+          if (!stop[k])
+            break;
         }
-      }
-      //to right
-      for (int k = j + 1; k < n; k++) {
-        int l = i * n + k;
-        if (b[i][k] == '.' && !found[l]) {
-          q.push(l);
-          found[l] = true;
-          turn[l] = turn[p] + 1;
-          pred[l] = p;
-        }
-        else {
-          break;
-        }
-      }
-      //to top
-      for (int k = i - 1; k >= 0; k--) {
-        int l = k * n + j;
-        if (b[k][j] == '.' && !found[l]) {
-          q.push(l);
-          found[l] = true;
-          turn[l] = turn[p] + 1;
-          pred[l] = p;
-        }
-        else {
-          break;
-        }
-      }
-      //to bottom
-      for (int k = i + 1; k < m; k++) {
-        int l = k * n + j;
-        if (b[k][j] == '.' && !found[l]) {
-          q.push(l);
-          found[l] = true;
-          turn[l] = turn[p] + 1;
-          pred[l] = p;
-        }
-        else {
+        if (k == 4) { //All stopped.
           break;
         }
       }
     }
   }
+
   //Set the old content back to target.
   b[p2.first][p2.second] = ch;
 
   //build path
-  vector<Point> res;
+  vector<Grid> res;
   if (pred[t]) {
     int p = t;
     while (p != s) {
@@ -121,7 +112,7 @@ int main() {
   }
   int p1i, p1j, p2i, p2j;
   while (cin >> p1i >> p1j >> p2i >> p2j) {
-    vector<Point> res = solve(b, make_pair(p1i, p1j), make_pair(p2i, p2j));
+    vector<Grid> res = solve(b, make_pair(p1i, p1j), make_pair(p2i, p2j));
     if (res.empty()) {
       cout << "Impossible!";
     }

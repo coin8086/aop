@@ -10,7 +10,7 @@ class Solution {
     public Grid(int x, int y) { first = x; second = y; }
   };
 
-  public static IList<Grid> solve(char[,] b, Grid p1, Grid p2) {
+  public static Grid[] solve(char[,] b, Grid p1, Grid p2) {
     int m = b.GetLength(0);
     int n = b.GetLength(1);
     int s = p1.first * n + p1.second;
@@ -103,7 +103,7 @@ class Solution {
       }
       res.Reverse();
     }
-    return res;
+    return res.ToArray();
   }
 
   static void Main() {
@@ -127,12 +127,12 @@ class Solution {
       int p2i = Int32.Parse(ma.Groups[3].Value);
       int p2j = Int32.Parse(ma.Groups[4].Value);
 
-      IList<Grid> res = solve(b, new Grid(p1i, p1j), new Grid(p2i, p2j));
-      if (res.Count == 0) {
+      Grid[] res = solve(b, new Grid(p1i, p1j), new Grid(p2i, p2j));
+      if (res.Length == 0) {
         Console.Write("Impossible!");
       }
       else {
-        for (int i = 0; i < res.Count; i++) {
+        for (int i = 0; i < res.Length; i++) {
           if (i != 0)
             Console.Write(' ');
           Console.Write($"({res[i].first},{res[i].second})");
